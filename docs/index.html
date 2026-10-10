@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Zet namen in het rad, geef het een draai en lees af wie eruit komt.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4f5f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b2026" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Cmask%20id%3D%27m%27%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%2715%27%20fill%3D%27%23fff%27%2F%3E%3C%2Fmask%3E%3Cg%20mask%3D%27url%28%23m%29%27%3E%3Crect%20x%3D%270%27%20y%3D%270%27%20width%3D%2716%27%20height%3D%2716%27%20fill%3D%27%234f7cc4%27%2F%3E%3Crect%20x%3D%2716%27%20y%3D%270%27%20width%3D%2716%27%20height%3D%2716%27%20fill%3D%27%23c0614d%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2716%27%20width%3D%2716%27%20height%3D%2716%27%20fill%3D%27%23a87f33%27%2F%3E%3Crect%20x%3D%2716%27%20y%3D%2716%27%20width%3D%2716%27%20height%3D%2716%27%20fill%3D%27%238365b3%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%275%27%20fill%3D%27%2317796c%27%2F%3E%3C%2Fsvg%3E">
+</head>
+<body>
+<title>Ratje Radje</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  /* Lichte weergave is de basis; de donkere herdefinieert alleen de tokens. */
+  :root{
+    color-scheme: light;
+    --bg:#f4f5f6;
+    --vlak:#ffffff;
+    --vlak-2:#eceef0;
+    --lijn:#dadde1;
+    --lijn-zacht:#e7e9ec;
+    --tekst:#1c2229;
+    --tekst-zacht:#5d6874;
+    --accent:#17796c;
+    --accent-hover:#135f55;
+    --op-accent:#ffffff;
+    --accent-zacht:rgba(23,121,108,.1);
+    --rad-rand:#d2d6da;
+    --rad-naad:#ffffff;
+    --rad-naaf:#ffffff;
+    --wig-tekst:#ffffff;
+    --diep:0 1px 2px rgba(18,24,31,.07), 0 10px 26px rgba(18,24,31,.07);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#1b2026;
+      --vlak:#232a31;
+      --vlak-2:#2b333b;
+      --lijn:#353f49;
+      --lijn-zacht:#2d363f;
+      --tekst:#e6eaee;
+      --tekst-zacht:#9aa6b2;
+      --accent:#3fb39f;
+      --accent-hover:#54c6b2;
+      --op-accent:#10211e;
+      --accent-zacht:rgba(63,179,159,.15);
+      --rad-rand:#3a444e;
+      --rad-naad:#1b2026;
+      --rad-naaf:#1b2026;
+      --wig-tekst:#ffffff;
+      --diep:0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.38);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#1b2026;
+    --vlak:#232a31;
+    --vlak-2:#2b333b;
+    --lijn:#353f49;
+    --lijn-zacht:#2d363f;
+    --tekst:#e6eaee;
+    --tekst-zacht:#9aa6b2;
+    --accent:#3fb39f;
+    --accent-hover:#54c6b2;
+    --op-accent:#10211e;
+    --accent-zacht:rgba(63,179,159,.15);
+    --rad-rand:#3a444e;
+    --rad-naad:#1b2026;
+    --rad-naaf:#1b2026;
+    --wig-tekst:#ffffff;
+    --diep:0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.38);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--tekst);
+    font-family:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+    font-size:1rem;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  img{max-width:100%}
+  [hidden]{display:none !important}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .blad{
+    max-width:1000px;
+    margin-inline:auto;
+    padding-inline:clamp(18px,4vw,40px);
+    padding-block:clamp(24px,4vw,44px) 40px;
+    display:flex;
+    flex-direction:column;
+    gap:clamp(22px,3.5vw,34px);
+  }
+
+  .balk{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+  .balk h1{
+    font-size:clamp(1.3rem,3.4vw,1.6rem);
+    font-weight:600;
+    letter-spacing:-.015em;
+    margin:0;
+  }
+  .balk p{margin:.2rem 0 0;color:var(--tekst-zacht);font-size:.9375rem;max-width:44ch}
+  .thema{
+    display:inline-flex;align-items:center;gap:7px;
+    flex:none;
+    background:var(--vlak);
+    border:1px solid var(--lijn);
+    border-radius:999px;
+    color:var(--tekst);
+    font:500 .875rem/1 "IBM Plex Sans",Arial,sans-serif;
+    padding:8px 13px 8px 11px;
+    cursor:pointer;
+  }
+  .thema:hover{background:var(--vlak-2)}
+  .thema svg{width:15px;height:15px;flex:none}
+
+  .vlakken{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 290px;
+    gap:clamp(20px,3.5vw,38px);
+    align-items:start;
+  }
+  @media (max-width:780px){ .vlakken{grid-template-columns:minmax(0,1fr)} }
+
+  /* het rad */
+  .rad-kolom{display:flex;flex-direction:column;gap:clamp(18px,2.5vw,26px);min-width:0}
+  .rad-vlak{position:relative;width:100%;max-width:470px;margin-inline:auto;aspect-ratio:1}
+  .rad-vlak canvas{display:block;width:100%;height:auto;max-width:100%}
+  #draai{
+    position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%);
+    width:24%;aspect-ratio:1;
+    border-radius:50%;
+    border:4px solid var(--rad-naaf);
+    background:var(--accent);
+    color:var(--op-accent);
+    font:600 clamp(.8rem,2.2vw,1rem)/1 "IBM Plex Sans",Arial,sans-serif;
+    cursor:pointer;
+    box-shadow:var(--diep);
+  }
+  #draai:hover:not(:disabled){background:var(--accent-hover)}
+  #draai:active:not(:disabled){transform:translate(-50%,-50%) scale(.95)}
+  #draai:disabled{cursor:default;opacity:.55}
+
+  /* uitslag */
+  .uitslag{min-height:5.5rem}
+  .uitslag .aanloop{margin:0;color:var(--tekst-zacht);font-size:.875rem}
+  .uitslag .naam{
+    font-size:clamp(1.9rem,6.5vw,3rem);
+    font-weight:600;
+    letter-spacing:-.02em;
+    line-height:1.1;
+    margin:.1rem 0 0;
+    overflow-wrap:anywhere;
+  }
+  .uitslag .naam.wacht{
+    font-size:1rem;font-weight:400;letter-spacing:0;line-height:1.5;
+    color:var(--tekst-zacht);margin-top:.25rem;max-width:36ch;
+  }
+  .uitslag.klaar .naam{animation:opkomst .3s cubic-bezier(.2,.9,.3,1) both}
+  @keyframes opkomst{from{transform:translateY(.15em);opacity:0}to{transform:none;opacity:1}}
+
+  /* namen */
+  .zijkant{
+    background:var(--vlak);
+    border:1px solid var(--lijn);
+    border-radius:12px;
+    padding:18px;
+    display:flex;flex-direction:column;gap:13px;
+  }
+  .zijkant h2{
+    font-size:1rem;font-weight:600;margin:0;
+    display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  }
+  .zijkant h2 em{font-style:normal;color:var(--tekst-zacht);font-size:.875rem;font-variant-numeric:tabular-nums}
+  .namen{list-style:none;margin:0;padding:0}
+  .namen li{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--lijn-zacht)}
+  .namen li:last-child{border-bottom:0}
+  .namen .verf{width:10px;height:10px;border-radius:3px;flex:none}
+  .namen .wie{flex:1;min-width:0;overflow-wrap:anywhere;font-size:.9375rem}
+  .namen li.wint .wie{color:var(--accent);font-weight:600}
+  .namen button{
+    appearance:none;border:0;background:transparent;
+    color:var(--tekst-zacht);font-size:1.05rem;line-height:1;
+    padding:3px 5px;cursor:pointer;border-radius:4px;
+  }
+  .namen button:hover{color:var(--tekst);background:var(--vlak-2)}
+  .toevoegen{display:flex;gap:8px}
+  input[type=text]{
+    flex:1;min-width:0;
+    background:var(--bg);
+    border:1px solid var(--lijn);
+    border-radius:8px;
+    color:var(--tekst);
+    font:inherit;font-size:.9375rem;
+    padding:9px 11px;
+  }
+  input[type=text]::placeholder{color:var(--tekst-zacht)}
+  .zet{
+    appearance:none;border:0;border-radius:8px;
+    background:var(--accent);color:var(--op-accent);
+    font:600 .9375rem/1 "IBM Plex Sans",Arial,sans-serif;
+    padding:0 14px;cursor:pointer;
+  }
+  .zet:hover{background:var(--accent-hover)}
+  .hint{margin:0;font-size:.8125rem;color:var(--tekst-zacht)}
+  .handelingen{display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--lijn-zacht);padding-top:12px}
+  .kaal{
+    appearance:none;border:0;background:transparent;padding:0;cursor:pointer;
+    color:var(--tekst-zacht);
+    font:400 .875rem/1.4 "IBM Plex Sans",Arial,sans-serif;
+    text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--lijn);
+  }
+  .kaal:hover{color:var(--tekst);text-decoration-color:currentColor}
+
+  /* uitleg onder het rad */
+  .uitleg{
+    border-top:1px solid var(--lijn);
+    padding-top:clamp(20px,3vw,28px);
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(228px,1fr));
+    gap:clamp(20px,3vw,32px);
+  }
+  .uitleg h3{font-size:.9375rem;font-weight:600;margin:0 0 .3rem}
+  .uitleg p{margin:0;color:var(--tekst-zacht);font-size:.9375rem;line-height:1.6;max-width:42ch}
+
+  /* regie, verstopt achter de hoek rechtsonder */
+  .regie{
+    background:var(--vlak);
+    border:1px solid var(--lijn);
+    border-radius:12px;
+    padding:14px 18px;
+    display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
+    font-size:.9375rem;
+  }
+  select{
+    background:var(--bg);
+    border:1px solid var(--lijn);
+    border-radius:8px;
+    color:var(--tekst);
+    font:inherit;font-size:.9375rem;
+    padding:7px 10px;
+  }
+  .regie .fluister{color:var(--tekst-zacht);font-size:.8125rem;flex:1;min-width:18ch;text-align:right}
+  .hoek{
+    position:fixed;right:9px;bottom:9px;
+    width:18px;height:18px;
+    appearance:none;border:0;padding:0;border-radius:4px;
+    background:transparent;cursor:default;
+  }
+  .hoek:hover,.hoek:focus-visible{background:var(--lijn-zacht)}
+
+  @media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms !important} }
+</style>
+
+<div class="blad">
+  <header class="balk">
+    <div>
+      <h1>Ratje Radje</h1>
+      <p>Zet namen in het rad, geef het een draai en lees af wie eruit komt. Handig op het moment dat er iets verdeeld moet worden en niemand de knoop wil doorhakken.</p>
+    </div>
+    <button class="thema" type="button" id="thema"></button>
+  </header>
+
+  <div class="vlakken">
+    <div class="rad-kolom">
+      <div class="rad-vlak" id="vlak">
+        <canvas id="rad" role="img" aria-label="Rad met de namen van de deelnemers"></canvas>
+        <button id="draai" type="button">Draai</button>
+      </div>
+      <div class="uitslag" id="uitslag" aria-live="polite">
+        <p class="aanloop" id="aanloop">Nog niet gedraaid</p>
+        <p class="naam wacht" id="naam">Klik op de knop in het midden, of druk op de spatiebalk.</p>
+      </div>
+    </div>
+
+    <section class="zijkant">
+      <h2>Namen <em id="aantal">8</em></h2>
+      <ul class="namen" id="lijst"></ul>
+      <form class="toevoegen" id="formulier">
+        <input type="text" id="invoer" autocomplete="off" maxlength="22" placeholder="Naam toevoegen" aria-label="Naam toevoegen">
+        <button class="zet" type="submit">Zet erin</button>
+      </form>
+      <p class="hint" id="hint">Tot 24 namen. Enter zet hem erin.</p>
+      <div class="handelingen">
+        <button class="kaal" type="button" id="schud">Schud de namen</button>
+        <button class="kaal" type="button" id="geluid" aria-pressed="false">Geluid uit</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="uitleg">
+    <div>
+      <h3>Namen erin zetten</h3>
+      <p>Typ een naam in het veld en druk op Enter. Elke naam krijgt een eigen kleur, zodat je in de lijst meteen ziet welk vak bij wie hoort. Er passen vierentwintig namen in het rad.</p>
+    </div>
+    <div>
+      <h3>Draaien</h3>
+      <p>Klik op de knop in het midden of druk op de spatiebalk. Het rad tikt onderweg en loopt in een paar seconden uit. De wijzer bovenaan wijst het vak aan, en de naam verschijnt groot onder het rad.</p>
+    </div>
+    <div>
+      <h3>Nog een ronde</h3>
+      <p>Haal een naam met het kruisje uit de lijst als je zonder hem verder wilt, of schud de namen om de volgorde in het rad te wisselen. De uitslag blijft staan tot je opnieuw draait.</p>
+    </div>
+    <div>
+      <h3>Waarvoor je het gebruikt</h3>
+      <p>Wie trakteert, wie begint met het spel, wie de afwas doet, welke film het wordt of wie er vrijdag naar de klant rijdt. Alles waar iemand uit een lijstje moet komen.</p>
+    </div>
+    <div>
+      <h3>Je lijst blijft staan</h3>
+      <p>De namen worden in deze browser bewaard, dus na het sluiten van het tabblad staan ze er nog. Er gaat niets naar een server; op een andere computer begin je met een lege lijst.</p>
+    </div>
+    <div>
+      <h3>Geluid en weergave</h3>
+      <p>Het tikken en het deuntje bij de uitslag zet je uit met de knop onder de lijst. De pagina volgt de licht- of donkerstand van je systeem, tenzij je er rechtsboven zelf een vastzet.</p>
+    </div>
+  </section>
+
+  <div class="regie" id="regie" hidden>
+    <label for="wint">Wie wint er altijd?</label>
+    <select id="wint"></select>
+    <span class="fluister">Alleen jij ziet dit. Toets Y om te sluiten.</span>
+  </div>
+</div>
+
+<button class="hoek" type="button" id="hoek" aria-label="Regie" aria-expanded="false"></button>
+
+<script>
+(function(){
+  "use strict";
+
+  var VERF = ["#4f7cc4","#c0614d","#4e9b70","#a87f33","#8365b3"];
+  var STANDAARD = ["Yannick","Sanne","Daan","Lotte","Bram","Fleur","Thijs","Noor"];
+  var MAX = 24;
+  var SLEUTEL = "radje.v1";
+  var OUD = "kermisrad.v1";
+
+  var wortel = document.documentElement;
+  var vlak = document.getElementById("vlak");
+  var cv = document.getElementById("rad");
+  var ctx = cv.getContext("2d");
+  var draaiBtn = document.getElementById("draai");
+  var lijstEl = document.getElementById("lijst");
+  var aantalEl = document.getElementById("aantal");
+  var hintEl = document.getElementById("hint");
+  var uitslagEl = document.getElementById("uitslag");
+  var aanloopEl = document.getElementById("aanloop");
+  var naamEl = document.getElementById("naam");
+  var formEl = document.getElementById("formulier");
+  var invoerEl = document.getElementById("invoer");
+  var regieEl = document.getElementById("regie");
+  var wintEl = document.getElementById("wint");
+  var hoekEl = document.getElementById("hoek");
+  var geluidBtn = document.getElementById("geluid");
+  var themaBtn = document.getElementById("thema");
+
+  var donkerQ = window.matchMedia("(prefers-color-scheme: dark)");
+  var rustig = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var namen = STANDAARD.slice();
+  var altijd = "Yannick";
+  var stil = false;
+  var thema = "auto";
+  var rot = -0.22;
+  var draait = false;
+  var winnaar = -1;
+  var maat = 0;
+  var kleur = {};
+
+  /* ---------- opslag ---------- */
+  function lees(){
+    var ruw = null;
+    try{ ruw = localStorage.getItem(SLEUTEL) || localStorage.getItem(OUD); }catch(e){ return; }
+    if(!ruw) return;
+    try{
+      var d = JSON.parse(ruw);
+      if(d && Array.isArray(d.namen) && d.namen.length) namen = d.namen.slice(0,MAX);
+      if(d && typeof d.altijd === "string") altijd = d.altijd;
+      if(d && typeof d.stil === "boolean") stil = d.stil;
+      if(d && (d.thema === "licht" || d.thema === "donker")) thema = d.thema;
+    }catch(e){/* onleesbaar, standaard blijft staan */}
+  }
+  function bewaar(){
+    try{
+      localStorage.setItem(SLEUTEL, JSON.stringify({namen:namen, altijd:altijd, stil:stil, thema:thema}));
+    }catch(e){/* browser houdt niets bij */}
+  }
+
+  function verfVoor(i,n){
+    var k = i % VERF.length;
+    if(i === n-1 && k === 0 && n > 1) k = 1;
+    return VERF[k];
+  }
+
+  /* ---------- thema ---------- */
+  function donkerNu(){
+    var gezet = wortel.getAttribute("data-theme");
+    if(gezet) return gezet === "dark";
+    return donkerQ.matches;
+  }
+  function leesKleuren(){
+    var cs = getComputedStyle(wortel);
+    kleur = {
+      rand: cs.getPropertyValue("--rad-rand").trim(),
+      naad: cs.getPropertyValue("--rad-naad").trim(),
+      naaf: cs.getPropertyValue("--rad-naaf").trim(),
+      wig: cs.getPropertyValue("--wig-tekst").trim(),
+      accent: cs.getPropertyValue("--accent").trim(),
+      tekst: cs.getPropertyValue("--tekst").trim()
+    };
+  }
+  var ZON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.1M12 19.3v2.1M4.2 4.2l1.5 1.5M18.3 18.3l1.5 1.5M2.6 12h2.1M19.3 12h2.1M4.2 19.8l1.5-1.5M18.3 5.7l1.5-1.5"/></svg>';
+  var MAAN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2z"/></svg>';
+  function toonThema(){
+    var donker = donkerNu();
+    themaBtn.innerHTML = (donker ? ZON : MAAN) + "<span>" + (donker ? "Licht" : "Donker") + "</span>";
+    themaBtn.setAttribute("aria-label", donker ? "Schakel naar lichte weergave" : "Schakel naar donkere weergave");
+    leesKleuren();
+    if(maat) teken();
+  }
+  function zetThema(nieuw){
+    thema = nieuw;
+    if(nieuw === "auto") wortel.removeAttribute("data-theme");
+    else wortel.setAttribute("data-theme", nieuw === "donker" ? "dark" : "light");
+    toonThema();
+    bewaar();
+  }
+  themaBtn.addEventListener("click", function(){ zetThema(donkerNu() ? "licht" : "donker"); });
+  if(donkerQ.addEventListener) donkerQ.addEventListener("change", function(){ if(thema === "auto") toonThema(); });
+
+  /* ---------- tekenen ---------- */
+  function meet(){
+    maat = Math.max(220, Math.floor(vlak.clientWidth));
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.floor(maat*dpr);
+    cv.height = Math.floor(maat*dpr);
+    cv.style.width = maat + "px";
+    cv.style.height = maat + "px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  function teken(){
+    var n = namen.length;
+    var cx = maat/2, cy = maat/2;
+    var randB = Math.max(5, maat*0.018);
+    var R = maat/2 - Math.max(6, maat*0.026);
+    var r = R - randB;
+
+    ctx.clearRect(0,0,maat,maat);
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,r+1,0,Math.PI*2);
+    ctx.fillStyle = kleur.rand;
+    ctx.fill();
+
+    var seg = n ? Math.PI*2/n : 0;
+    var lh = Math.max(9, Math.min(20, r*0.085, seg*r*0.5 || 20));
+
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(rot - Math.PI/2);
+    for(var i=0;i<n;i++){
+      var a0 = i*seg, a1 = a0+seg;
+
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.arc(0,0,r,a0,a1);
+      ctx.closePath();
+      ctx.fillStyle = verfVoor(i,n);
+      ctx.fill();
+
+      if(!draait && i === winnaar){
+        ctx.save();
+        ctx.clip();
+        ctx.fillStyle = "rgba(255,255,255,.17)";
+        ctx.fillRect(-r,-r,r*2,r*2);
+        ctx.restore();
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.lineTo(Math.cos(a0)*r, Math.sin(a0)*r);
+      ctx.strokeStyle = kleur.naad;
+      ctx.lineWidth = Math.max(1.5, maat*0.005);
+      ctx.stroke();
+
+      var tekst = namen[i];
+      var kant = norm(rot - Math.PI/2 + a0 + seg/2);
+      var omgekeerd = kant > Math.PI/2 && kant < Math.PI*1.5;
+      ctx.save();
+      ctx.rotate(a0 + seg/2);
+      if(omgekeerd) ctx.rotate(Math.PI);
+      ctx.fillStyle = kleur.wig;
+      ctx.font = "600 " + lh.toFixed(1) + 'px "IBM Plex Sans",Arial,sans-serif';
+      ctx.textAlign = omgekeerd ? "left" : "right";
+      ctx.textBaseline = "middle";
+      var ruimte = r - r*0.3;
+      while(ctx.measureText(tekst).width > ruimte && tekst.length > 3){
+        tekst = tekst.slice(0,-1);
+      }
+      if(tekst !== namen[i]) tekst = tekst.slice(0,-1) + "…";
+      var tot = r - Math.max(10, r*0.07);
+      ctx.fillText(tekst, omgekeerd ? -tot : tot, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+
+    /* rand van het rad */
+    ctx.beginPath();
+    ctx.arc(cx,cy,r + randB/2,0,Math.PI*2);
+    ctx.strokeStyle = kleur.rand;
+    ctx.lineWidth = randB;
+    ctx.stroke();
+
+    /* naaf */
+    ctx.beginPath();
+    ctx.arc(cx,cy,r*0.16,0,Math.PI*2);
+    ctx.fillStyle = kleur.naaf;
+    ctx.fill();
+
+    /* wijzer */
+    var pb = Math.max(14, maat*0.058);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r + pb*0.62);
+    ctx.lineTo(cx - pb*0.5, cy - r - pb*0.7);
+    ctx.lineTo(cx + pb*0.5, cy - r - pb*0.7);
+    ctx.closePath();
+    ctx.fillStyle = kleur.accent;
+    ctx.fill();
+    ctx.lineWidth = Math.max(2, maat*0.007);
+    ctx.strokeStyle = kleur.naaf;
+    ctx.lineJoin = "round";
+    ctx.stroke();
+  }
+
+  /* ---------- geluid ---------- */
+  var ac = null;
+  function context(){
+    if(ac) return ac;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    ac = new AC();
+    return ac;
+  }
+  function tik(kracht){
+    if(stil) return;
+    try{
+      var c = context();
+      if(!c) return;
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = "square";
+      o.frequency.value = 1150 + Math.random()*180;
+      o.connect(g); g.connect(c.destination);
+      var t = c.currentTime;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(Math.min(0.07, 0.018 + kracht*0.055), t+0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+0.05);
+      o.start(t); o.stop(t+0.055);
+    }catch(e){/* geen geluid beschikbaar */}
+  }
+  function deuntje(){
+    if(stil) return;
+    [523.25,659.25,783.99,1046.5].forEach(function(f,i){
+      setTimeout(function(){
+        try{
+          var c = context();
+          if(!c) return;
+          var o = c.createOscillator(), g = c.createGain();
+          o.type = "triangle";
+          o.frequency.value = f;
+          o.connect(g); g.connect(c.destination);
+          var t = c.currentTime;
+          g.gain.setValueAtTime(0.0001,t);
+          g.gain.linearRampToValueAtTime(0.09,t+0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001,t+0.4);
+          o.start(t); o.stop(t+0.42);
+        }catch(e){}
+      }, [0,105,210,340][i]);
+    });
+  }
+
+  /* ---------- draaien ---------- */
+  function norm(a){ var m = a % (Math.PI*2); return m < 0 ? m + Math.PI*2 : m; }
+
+  function kies(){
+    var n = namen.length;
+    if(altijd){
+      for(var i=0;i<n;i++){
+        if(namen[i].toLowerCase() === altijd.toLowerCase()) return i;
+      }
+    }
+    return Math.floor(Math.random()*n);
+  }
+
+  function onderWijzer(){
+    var n = namen.length;
+    return Math.floor(norm(-rot)/(Math.PI*2/n)) % n;
+  }
+
+  function draaien(){
+    if(draait || namen.length < 2) return;
+    draait = true;
+    winnaar = -1;
+    draaiBtn.disabled = true;
+    uitslagEl.classList.remove("klaar");
+    aanloopEl.textContent = "Het rad draait";
+    naamEl.textContent = "…";
+    naamEl.classList.add("wacht");
+
+    var idx = kies();
+    var n = namen.length;
+    var seg = Math.PI*2/n;
+    var speling = seg*(0.22 + Math.random()*0.56);
+    var slagen = 5 + Math.floor(Math.random()*3);
+    var nodig = norm(-(idx*seg + speling));
+    var begin = rot;
+    var eind = begin + slagen*Math.PI*2 + norm(nodig - begin);
+    var duur = rustig ? 700 : 5000 + Math.random()*900;
+    var t0 = performance.now();
+    var vorige = onderWijzer();
+
+    function stap(nu){
+      var t = Math.min(1,(nu - t0)/duur);
+      rot = begin + (eind - begin)*(1 - Math.pow(1 - t, 4));
+      var huidig = onderWijzer();
+      if(huidig !== vorige){ tik(1 - t); vorige = huidig; }
+      teken();
+      if(t < 1) requestAnimationFrame(stap);
+      else uitlopen(eind, idx);
+    }
+    requestAnimationFrame(stap);
+  }
+
+  function uitlopen(eind, idx){
+    var terug = (Math.PI*2/namen.length)*0.035;
+    var duur = rustig ? 1 : 250;
+    var t0 = performance.now();
+    function stap(nu){
+      var t = Math.min(1,(nu - t0)/duur);
+      rot = eind - terug*Math.sin(t*Math.PI);
+      teken();
+      if(t < 1) requestAnimationFrame(stap);
+      else klaar(eind, idx);
+    }
+    requestAnimationFrame(stap);
+  }
+
+  function klaar(eind, idx){
+    rot = norm(eind);
+    draait = false;
+    winnaar = idx;
+    draaiBtn.disabled = false;
+    aanloopEl.textContent = "Het rad wijst naar";
+    naamEl.textContent = namen[idx];
+    naamEl.classList.remove("wacht");
+    uitslagEl.classList.add("klaar");
+    deuntje();
+    teken();
+  }
+
+  /* ---------- namen ---------- */
+  function toonLijst(){
+    var n = namen.length;
+    lijstEl.innerHTML = "";
+    namen.forEach(function(naam,i){
+      var li = document.createElement("li");
+      if(altijd && naam.toLowerCase() === altijd.toLowerCase() && !regieEl.hidden) li.className = "wint";
+      var verf = document.createElement("i");
+      verf.className = "verf";
+      verf.style.background = verfVoor(i,n);
+      var wie = document.createElement("span");
+      wie.className = "wie";
+      wie.textContent = naam;
+      var weg = document.createElement("button");
+      weg.type = "button";
+      weg.setAttribute("aria-label", "Haal " + naam + " uit het rad");
+      weg.textContent = "×";
+      weg.addEventListener("click", function(){ haalWeg(i); });
+      li.appendChild(verf); li.appendChild(wie); li.appendChild(weg);
+      lijstEl.appendChild(li);
+    });
+    aantalEl.textContent = n;
+    draaiBtn.disabled = draait || n < 2;
+    if(n < 2) hintEl.textContent = "Met één naam valt er niets te draaien. Zet er nog een paar in.";
+    else if(n >= MAX) hintEl.textContent = "Het rad zit vol met " + MAX + " namen.";
+    else hintEl.textContent = "Tot " + MAX + " namen. Enter zet hem erin.";
+    invoerEl.disabled = n >= MAX;
+    toonRegie();
+  }
+
+  function toonRegie(){
+    var huidig = altijd;
+    wintEl.innerHTML = "";
+    var eerlijk = document.createElement("option");
+    eerlijk.value = "";
+    eerlijk.textContent = "Niemand, draai eerlijk";
+    wintEl.appendChild(eerlijk);
+    var gevonden = false;
+    namen.forEach(function(naam){
+      var o = document.createElement("option");
+      o.value = naam;
+      o.textContent = naam;
+      if(naam.toLowerCase() === huidig.toLowerCase()){ o.selected = true; gevonden = true; }
+      wintEl.appendChild(o);
+    });
+    if(!gevonden && huidig){
+      var o2 = document.createElement("option");
+      o2.value = huidig;
+      o2.textContent = huidig + " (staat niet in het rad)";
+      o2.selected = true;
+      wintEl.appendChild(o2);
+    }
+    if(!huidig) wintEl.value = "";
+  }
+
+  function haalWeg(i){
+    if(draait) return;
+    namen.splice(i,1);
+    winnaar = -1;
+    bewaar(); toonLijst(); teken();
+  }
+
+  formEl.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var v = invoerEl.value.trim().replace(/\s+/g," ");
+    if(!v || namen.length >= MAX) return;
+    if(namen.some(function(x){ return x.toLowerCase() === v.toLowerCase(); })){
+      hintEl.textContent = v + " staat al in het rad.";
+      invoerEl.select();
+      return;
+    }
+    namen.push(v);
+    invoerEl.value = "";
+    winnaar = -1;
+    bewaar(); toonLijst(); teken();
+  });
+
+  document.getElementById("schud").addEventListener("click", function(){
+    if(draait) return;
+    for(var i=namen.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t = namen[i]; namen[i] = namen[j]; namen[j] = t;
+    }
+    winnaar = -1;
+    bewaar(); toonLijst(); teken();
+  });
+
+  geluidBtn.addEventListener("click", function(){
+    stil = !stil;
+    geluidBtn.textContent = stil ? "Geluid aan" : "Geluid uit";
+    geluidBtn.setAttribute("aria-pressed", stil ? "true" : "false");
+    bewaar();
+  });
+
+  draaiBtn.addEventListener("click", draaien);
+
+  /* ---------- regie ---------- */
+  function regie(open){
+    var naar = typeof open === "boolean" ? open : regieEl.hidden;
+    regieEl.hidden = !naar;
+    hoekEl.setAttribute("aria-expanded", naar ? "true" : "false");
+    toonLijst();
+    if(naar) wintEl.focus();
+  }
+  hoekEl.addEventListener("click", function(){ regie(); });
+  wintEl.addEventListener("change", function(){
+    altijd = wintEl.value;
+    bewaar();
+    toonLijst();
+  });
+  document.addEventListener("keydown", function(ev){
+    var tag = (ev.target.tagName || "").toLowerCase();
+    if(tag === "input" || tag === "select" || tag === "textarea") return;
+    if(ev.key === "y" || ev.key === "Y") regie();
+    if(ev.code === "Space" && ev.target === document.body){
+      ev.preventDefault();
+      draaien();
+    }
+  });
+
+  /* ---------- opstarten ---------- */
+  function opnieuw(){ meet(); teken(); }
+  lees();
+  if(thema !== "auto") wortel.setAttribute("data-theme", thema === "donker" ? "dark" : "light");
+  toonThema();
+  geluidBtn.textContent = stil ? "Geluid aan" : "Geluid uit";
+  geluidBtn.setAttribute("aria-pressed", stil ? "true" : "false");
+  toonLijst();
+  opnieuw();
+  window.addEventListener("resize", opnieuw);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(teken);
+})();
+</script>
+
+</body>
+</html>
